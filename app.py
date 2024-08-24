@@ -84,5 +84,26 @@ def upload_audio():
 
     return jsonify({'message': 'Arquivo de aúdio carregado no servidor com sucesso. Contéudo (primeiros 100 bytes:)' + file_content[:100]}), 200
 
+@app.route('/transcribeAudio', methods=['POST'])
+@cross_origin()
+def transcribe_audio():
+    if 'file' not in request.files:
+        return jsonify({'error': 'Nenhum arquivo foi enviado na requisicao'}), 400
+
+    file = request.files['file']
+
+    if file.filename == '':
+        return jsonify({'error': 'Nenhum arquivo selecionado'}), 400
+
+    file_content = file.read()
+
+    file_path = f"./uploads/{file.filename}"
+    with open(file_path, 'wb') as f:
+        f.write(file_content)
+    
+    converted_text_openai = methods.openai_methods.convert_speech_to_text(client, file_path)
+
+    return jsonify({'message': 'Texto transcrito do áudio: ' + converted_text_openai}), 200
+
 if __name__ == '__main__':
     app.run(debug=True)
