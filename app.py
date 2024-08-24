@@ -1,12 +1,15 @@
 from flask import Flask, request, jsonify
 import methods.openai_methods
-
+from flask_cors import CORS, cross_origin
 import os
 from dotenv import load_dotenv
 load_dotenv()
 from openai import OpenAI
 
 app = Flask(__name__)
+cors = CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
+
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
@@ -28,6 +31,7 @@ historical_messages = [
     ]
 
 @app.route('/getResponse', methods=['POST'])
+@cross_origin()
 def get_response():
     data = request.get_json()
     prompt = data.get('prompt')
@@ -41,6 +45,7 @@ def get_response():
     return jsonify(response)
 
 @app.route('/deleteHistory', methods=['POST'])
+@cross_origin()
 def delete_history():
     global historical_messages
     historical_messages = [
@@ -54,6 +59,7 @@ def delete_history():
     return jsonify(response)
 
 @app.route('/getHistory', methods=['GET'])
+@cross_origin()
 def get_history():
     response = {
         'resposta': historical_messages
@@ -63,23 +69,20 @@ def get_history():
 @app.route('/uploadAudio', methods=['POST'])
 def upload_audio():
     if 'file' not in request.files:
-        return jsonify({'error': 'No file part'}), 400
+        return jsonify({'error': 'Nenhum arquivo foi enviado na requisicao'}), 400
 
     file = request.files['file']
 
     if file.filename == '':
-        return jsonify({'error': 'No selected file'}), 400
+        return jsonify({'error': 'Nenhum arquivo selecionado'}), 400
 
     file_content = file.read()
-
-    print(f"Conteúdo do arquivo (primeiros 100 bytes): {file_content[:100]}")
 
     file_path = f"./uploads/{file.filename}"
     with open(file_path, 'wb') as f:
         f.write(file_content)
 
-    return jsonify({'message': 'Arquivo de aúdio carregado no servidor com sucesso'}), 200
+    return jsonify({'message': 'Arquivo de aúdio carregado no servidor com sucesso. Contéudo (primeiros 100 bytes:)' + file_content[:100]}), 200
 
 if __name__ == '__main__':
     app.run(debug=True)
-
