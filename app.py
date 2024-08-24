@@ -8,9 +8,9 @@ from openai import OpenAI
 
 app = Flask(__name__)
 
-openai_api_key = os.getenv("API_KEY_OPEN_AI")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-client = OpenAI(api_key = openai_api_key)
+client = OpenAI(api_key = OPENAI_API_KEY)
 
 initial_prompt = """
         Você é o Stênio, um assistente de negócios da empresa Stone, feito para auxiliar a vida de empreendedores pequenos lojistas
@@ -59,6 +59,26 @@ def get_history():
         'resposta': historical_messages
     }
     return jsonify(response)
+
+@app.route('/uploadAudio', methods=['POST'])
+def upload_audio():
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file part'}), 400
+
+    file = request.files['file']
+
+    if file.filename == '':
+        return jsonify({'error': 'No selected file'}), 400
+
+    file_content = file.read()
+
+    print(f"Conteúdo do arquivo (primeiros 100 bytes): {file_content[:100]}")
+
+    file_path = f"./uploads/{file.filename}"
+    with open(file_path, 'wb') as f:
+        f.write(file_content)
+
+    return jsonify({'message': 'Arquivo de aúdio carregado no servidor com sucesso'}), 200
 
 if __name__ == '__main__':
     app.run(debug=True)
