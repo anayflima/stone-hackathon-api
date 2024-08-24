@@ -5,7 +5,7 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 from openai import OpenAI
-
+import base64
 app = Flask(__name__)
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
@@ -30,16 +30,59 @@ historical_messages = [
     {"role": "assistant", "content": initial_prompt},
     ]
 
-@app.route('/getResponse', methods=['POST'])
+@app.route('/getResponseText', methods=['POST'])
 @cross_origin()
-def get_response():
+def get_response_text():
     data = request.get_json()
     prompt = data.get('prompt')
 
     textmodel_response = methods.openai_methods.get_response_from_model(client, prompt, historical_messages)
 
+    audio_data = methods.openai_methods.convert_text_to_speech(client, textmodel_response)
+
+    file_content_base64 = base64.b64encode(audio_data).decode('utf-8')
+
+    # audio_falado = "resposta_modelo_falada.webm"
+    # file_path = f"./uploads/{audio_falado}"
+
+    # with open(file_path, 'wb') as f:
+    #     f.write(audio_data)
+
     response = {
-        'resposta': textmodel_response
+        'model_responde_text': textmodel_response,
+        'model_responde_audio': file_content_base64
+    }
+
+    return jsonify(response)
+
+@app.route('/getResponseAudio', methods=['POST'])
+@cross_origin()
+def get_response_audio():
+    if 'file' not in request.files:
+        return jsonify({'error': 'Nenhum arquivo foi enviado na requisicao'}), 400
+
+    file = request.files['file']
+
+    if file.filename == '':
+        return jsonify({'error': 'Nenhum arquivo selecionado'}), 400
+
+    file_content = file.read()
+
+    file_path = f"./uploads/{file.filename}"
+    with open(file_path, 'wb') as f:
+        f.write(file_content)
+    
+    converted_text_openai = methods.openai_methods.convert_speech_to_text(client, file_path)
+
+    textmodel_response = methods.openai_methods.get_response_from_model(client, converted_text_openai, historical_messages)
+    
+    audio_data = methods.openai_methods.convert_text_to_speech(client, textmodel_response)
+
+    file_content_base64 = base64.b64encode(audio_data).decode('utf-8')
+
+    response = {
+        'model_responde_text': textmodel_response,
+        'model_responde_audio': file_content_base64
     }
 
     return jsonify(response)
@@ -104,6 +147,26 @@ def transcribe_audio():
     converted_text_openai = methods.openai_methods.convert_speech_to_text(client, file_path)
 
     return jsonify({'message': 'Texto transcrito do áudio: ' + converted_text_openai}), 200
+
+@app.route('/verbalizeText', methods=['POST'])
+@cross_origin()
+def verbalize_text():
+    data = request.get_json()
+    text = data.get('prompt')
+
+    audio_data = methods.openai_methods.convert_text_to_speech(client, text)
+
+    audio_falado = "audio_falado.webm"
+    file_path = f"./uploads/{audio_falado}"
+
+    file_content_base64 = base64.b64encode(audio_data).decode('utf-8')
+
+    with open(file_path, 'wb') as f:
+        f.write(audio_data)
+    
+    return jsonify({'message': 'Arquivo de aúdio carregado no servidor com sucesso. Contéudo (primeiros 100 bytes:)' + str(audio_data[:100]),
+                    'file_content': file_content_base64
+                    }), 200
 
 if __name__ == '__main__':
     app.run(debug=True)
