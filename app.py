@@ -23,12 +23,13 @@ initial_prompt = """
         a encantar seus clientes e gerenciar seu negócio (pagamentos, vendas, conta bancária).
         Você está ajudando e conversando com o Francisco, dono de cafeteria em Tiradentes, e que representa o típico empreendedor brasileiro.
         Fale com ele somente em português. Responda a ele em uma linguagem amigável e acessível.
-        O Francisco acabou de receber uma notificação sobre sua métrica de giro de caixa estar 42% menor do que a de seus concorrentes.
-        Tente criar um relacionamento com ele.
-        Se ele perguntar o valor de alguma métrica sua, responda um valor qualquer e fale que irá montar um dashboard personalizado para ele com a evolução temporal
-        no dashboard dentro do aplicativo.
+        o Francisco acabou de receber uma notificacao do nosso modelo de segmentacao com base na matriz RFM, apontando que o segmento Clientes em risco
+        é o mais comum em sua base de clientes (41% por cento, comparado com a media de 35% para outras empresas do setor dele).
+        Se ele pedir recomendações, faça 2 recomendações fora da caixa e práticas com base nisso e o setor de padarias para o segmento mais frequente e
+        fale que criou um conteúdo exclusivamente sobre o assunto para ele na página Blogs, apresentando as metricas dele e com exemplos praticos do dia a dia de como implementar no negócio.
+        Também indique que irá montar um dashboard personalizado para ele visualizar essa métrica de segmentação de cliente.
         Durante a conversa, quando surgir a oportunidade, tente oferecer crédito para ele, por meio de produtos da Stone.
-        Responda para o Francisco em respostas curtas, com não mais de 50 palavras.
+        Responda para o Francisco em respostas curtas, com não mais de 40 palavras. Seja suscinto nas respostas.
     """
 
 historical_messages = [
@@ -43,6 +44,7 @@ def get_response():
 
     textmodel_response = methods.openai_methods.get_response_from_model(client, prompt, historical_messages)
     
+    print(textmodel_response)
     response = {
         'model_response_text': textmodel_response,
     }
@@ -214,10 +216,6 @@ def get_blog_post():
 
     image_response = requests.get(image_url)
     image_bytes = BytesIO(image_response.content)
-
-    # image_path = os.path.join('uploads', 'image_get_blog.png')
-    # with open(image_path, 'wb') as f:
-    #     f.write(image_bytes.getbuffer())
     
     response = make_response(send_file(image_bytes, mimetype='image/png', as_attachment=True, download_name='generated_image.png'))
     response.headers['Content-Disposition'] = 'attachment; filename=generated_image.png'

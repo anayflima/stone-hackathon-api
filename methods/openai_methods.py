@@ -10,7 +10,7 @@ def get_response_from_model(client, question, historical_messages):
                 ]
     print(messages_list)
     response = client.chat.completions.create(
-        model="gpt-4o-mini",
+        model="gpt-4o",
         messages=messages_list
         )
     response_text = response.choices[0].message.content
@@ -38,38 +38,6 @@ def convert_text_to_speech(client, text):
             audio_data = audio_file.read()
         os.remove(speech_file_path)
         return audio_data
-
-# def generate_image_from_short_description(client, message):
-#     response = client.chat.completions.create(
-#         model="gpt-4-0125-preview",
-#         messages=[
-#             {
-#                 "role": "system",
-#                 "content":
-#                     """
-#                     Você é um sistema de descrição de imagem que descreve imagens para um blog interativo e educativo para o Francisco, dono de uma cafeteria em Tiradentes,
-#                     no Brasil. Ele é cliente da Stone, e o blog está sendo gerado pela Stone.
-#                     Você recebe uma breve descrição em formato de legenda da imagem. Descreva o cenário de uma forma que seria adequado para uma entrada para um modelo de
-#                     stable diffusion image generation AI, DALL·E. Devolva somente esse prompt. As imagens que vão ser geradas devem ser simples, educativas, e divertidas.
-#                     """
-#             },
-#             {
-#                 "role": "user", "content": message},
-#             ]
-#     )
-#     image_description = response.choices[0].message.content
-#     print(image_description)
-
-#     response = client.images.generate(
-#         model="dall-e-3",
-#         prompt=image_description,
-#         size="1792x1024",
-#         quality="standard",
-#         n=1,
-#     )
-    
-#     image_url = response.data[0].url
-#     return image_url
 
 def generate_image(client, image_description):
     print('generate_image')
