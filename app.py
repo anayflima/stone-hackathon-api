@@ -128,6 +128,7 @@ def get_history():
     return jsonify(response)
 
 @app.route('/uploadAudio', methods=['POST'])
+@cross_origin()
 def upload_audio():
     if 'file' not in request.files:
         return jsonify({'error': 'Nenhum arquivo foi enviado na requisicao'}), 400
@@ -188,6 +189,7 @@ def verbalize_text():
 
 
 @app.route('/generateImage', methods=['POST'])
+@cross_origin()
 def generate_image_route():
     message = request.json.get('message')
     image_url = methods.openai_methods.generate_image(client, message)
@@ -202,6 +204,7 @@ def generate_image_route():
     return send_file(image_bytes, mimetype='image/png', as_attachment=True, download_name='generated_image.png')
 
 @app.route('/getBlogPost', methods=['POST'])
+@cross_origin()
 def get_blog_post():
     data = request.get_json()
     topic = data.get('topic')
@@ -221,6 +224,33 @@ def get_blog_post():
     response.data = blog_content
     
     return response
+
+@app.route('/getBlogText', methods=['POST'])
+@cross_origin()
+def get_blog_text():
+    data = request.get_json()
+    topic = data.get('topic')
+    blog_content, image_description = methods.openai_methods.generate_blog_text(client, topic)
+
+    response = {
+        'blog_content': blog_content,
+        'image_description': image_description,
+    }
+
+    return jsonify(response)
+
+@app.route('/getBlogImage', methods=['POST'])
+@cross_origin()
+def get_blog_image():
+    data = request.get_json()
+    image_description = data.get('description')
+
+    image_url = methods.openai_methods.generate_image(client, image_description)
+
+    image_response = requests.get(image_url)
+    image_bytes = BytesIO(image_response.content)
+
+    return send_file(image_bytes, mimetype='image/png', as_attachment=True, download_name='generated_image.png')
 
 
 if __name__ == '__main__':

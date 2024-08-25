@@ -111,7 +111,26 @@ def generate_blog_text(client, message):
                     veja suas métricas através do dashboard.
                     Além disso, suponha que você tem os dados do Francisco, de fluxo de caixa, vendas, entradas e saídas na conta bancária, etc. Aproveite esses 
                     dados para personalizar o blog com dados reais de Francisco, comparando-os com a média do setor.
+                    Gere o conteúdo do artigo no blog como o body de um arquivo html (sem a tag <body>) no seguinte formato:
+                    Faça o título com a tag <h1> com a classe
+                    tituloBlog, subtítulos com <h3> e com a classe subtituloBlog, e em seguinte o texto em <p> com classe textoBlog.
+                    Você pode adicionar textos em negritos com a tag <strong> ao longo do texto em títulos e tópicos.
                     Assine o blog como Stênio.
+                    Gere um documento mais ou menos nesse formato:
+
+                    <h1 class="tituloBlog">Título</h1>
+
+                    <h3 class="subtituloBlog">Subtítulo</h3>
+                    <p class="textoBlog">Conteúdo</p>
+
+                   ...
+
+                    <h3 class="subtituloBlog">Subtítulo/h3>
+                    <p class="textoBlog"></p>
+
+                    <p class="textoBlog">Até a próxima,</p>
+
+                    <p class="textoBlog"><strong>Stênio</strong></p>
                     """
             },
             {
