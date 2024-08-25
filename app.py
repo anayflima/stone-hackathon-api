@@ -187,38 +187,8 @@ def verbalize_text():
                     }), 200
 
 
-@app.route('/getBlog', methods=['GET'])
-def get_blog():
-    data = [
-        {"id": 1, "name": "Item 1"},
-    ]
-    return jsonify(data)
-
-@app.route('/getBlogs', methods=['GET'])
-def get_blogs():
-    data = [
-        {"id": 1, "name": "Item 1"},
-        {"id": 2, "name": "Item 2"},
-        {"id": 3, "name": "Item 3"}
-    ]
-    return jsonify(data)
-
 @app.route('/generateImage', methods=['POST'])
 def generate_image_route():
-    message = request.json.get('message')
-    image_url = methods.openai_methods.generate_image(client, message)
-    
-    image_response = requests.get(image_url)
-    image_bytes = BytesIO(image_response.content)
-
-    image_path = os.path.join('uploads', 'generated_image.png')
-    with open(image_path, 'wb') as f:
-        f.write(image_bytes.getbuffer())
-    
-    return send_file(image_bytes, mimetype='image/png', as_attachment=True, download_name='generated_image.png')
-
-@app.route('/generateBlogText', methods=['POST'])
-def generate_blog_text():
     message = request.json.get('message')
     image_url = methods.openai_methods.generate_image(client, message)
     
