@@ -2,3 +2,4 @@ flask
 openai
 load_dotenv
 flask-cors
+requests

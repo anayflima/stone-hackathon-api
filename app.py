@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify, send_file, make_response
 import io
 import methods.openai_methods
 from flask_cors import CORS, cross_origin
@@ -10,6 +10,8 @@ import base64
 app = Flask(__name__)
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
+from io import BytesIO
+import requests
 
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -183,6 +185,73 @@ def verbalize_text():
     return jsonify({'message': 'Arquivo de aúdio carregado no servidor com sucesso. Contéudo (primeiros 100 bytes:)' + str(audio_data[:100]),
                     'file_content': file_content_base64
                     }), 200
+
+
+@app.route('/getBlog', methods=['GET'])
+def get_blog():
+    data = [
+        {"id": 1, "name": "Item 1"},
+    ]
+    return jsonify(data)
+
+@app.route('/getBlogs', methods=['GET'])
+def get_blogs():
+    data = [
+        {"id": 1, "name": "Item 1"},
+        {"id": 2, "name": "Item 2"},
+        {"id": 3, "name": "Item 3"}
+    ]
+    return jsonify(data)
+
+@app.route('/generateImage', methods=['POST'])
+def generate_image_route():
+    message = request.json.get('message')
+    image_url = methods.openai_methods.generate_image(client, message)
+    
+    image_response = requests.get(image_url)
+    image_bytes = BytesIO(image_response.content)
+
+    image_path = os.path.join('uploads', 'generated_image.png')
+    with open(image_path, 'wb') as f:
+        f.write(image_bytes.getbuffer())
+    
+    return send_file(image_bytes, mimetype='image/png', as_attachment=True, download_name='generated_image.png')
+
+@app.route('/generateBlogText', methods=['POST'])
+def generate_blog_text():
+    message = request.json.get('message')
+    image_url = methods.openai_methods.generate_image(client, message)
+    
+    image_response = requests.get(image_url)
+    image_bytes = BytesIO(image_response.content)
+
+    image_path = os.path.join('uploads', 'generated_image.png')
+    with open(image_path, 'wb') as f:
+        f.write(image_bytes.getbuffer())
+    
+    return send_file(image_bytes, mimetype='image/png', as_attachment=True, download_name='generated_image.png')
+
+@app.route('/getBlogPost', methods=['POST'])
+def get_blog_post():
+    data = request.get_json()
+    topic = data.get('topic')
+    blog_content, image_description = methods.openai_methods.generate_blog_text(client, topic)
+
+    image_url = methods.openai_methods.generate_image(client, image_description)
+
+    image_response = requests.get(image_url)
+    image_bytes = BytesIO(image_response.content)
+
+    # image_path = os.path.join('uploads', 'image_get_blog.png')
+    # with open(image_path, 'wb') as f:
+    #     f.write(image_bytes.getbuffer())
+    
+    response = make_response(send_file(image_bytes, mimetype='image/png', as_attachment=True, download_name='generated_image.png'))
+    response.headers['Content-Disposition'] = 'attachment; filename=generated_image.png'
+    response.data = blog_content
+    
+    return response
+
 
 if __name__ == '__main__':
     app.run(debug=True)
