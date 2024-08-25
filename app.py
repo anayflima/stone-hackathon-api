@@ -1,4 +1,5 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
+import io
 import methods.openai_methods
 from flask_cors import CORS, cross_origin
 import os
@@ -20,8 +21,10 @@ initial_prompt = """
         a encantar seus clientes e gerenciar seu negócio (pagamentos, vendas, conta bancária).
         Você está ajudando e conversando com o Francisco, dono de cafeteria em Tiradentes, e que representa o típico empreendedor brasileiro.
         Fale com ele somente em português. Responda a ele em uma linguagem amigável e acessível.
-        Caso ele esteja perdido sobre como começar a melhorar o seu negócio, direcione a conversa para caixa de giro.
-        Tente criar um relacionamento com ele, explicar bem sobre e deixar ele perguntar. Procure 
+        O Francisco acabou de receber uma notificação sobre sua métrica de giro de caixa estar 42% menor do que a de seus concorrentes.
+        Tente criar um relacionamento com ele.
+        Se ele perguntar o valor de alguma métrica sua, responda um valor qualquer e fale que irá montar um dashboard personalizado para ele com a evolução temporal
+        no dashboard dentro do aplicativo.
         Durante a conversa, quando surgir a oportunidade, tente oferecer crédito para ele, por meio de produtos da Stone.
         Responda para o Francisco em respostas curtas, com não mais de 50 palavras.
     """
@@ -29,6 +32,20 @@ initial_prompt = """
 historical_messages = [
     {"role": "assistant", "content": initial_prompt},
     ]
+
+@app.route('/getResponse', methods=['POST'])
+@cross_origin()
+def get_response():
+    data = request.get_json()
+    prompt = data.get('prompt')
+
+    textmodel_response = methods.openai_methods.get_response_from_model(client, prompt, historical_messages)
+    
+    response = {
+        'model_response_text': textmodel_response,
+    }
+
+    return jsonify(response)
 
 @app.route('/getResponseText', methods=['POST'])
 @cross_origin()
@@ -40,20 +57,16 @@ def get_response_text():
 
     audio_data = methods.openai_methods.convert_text_to_speech(client, textmodel_response)
 
-    file_content_base64 = base64.b64encode(audio_data).decode('utf-8')
-
-    # audio_falado = "resposta_modelo_falada.webm"
-    # file_path = f"./uploads/{audio_falado}"
-
-    # with open(file_path, 'wb') as f:
-    #     f.write(audio_data)
-
     response = {
-        'model_responde_text': textmodel_response,
-        'model_responde_audio': file_content_base64
+        'model_response_text': textmodel_response
     }
 
-    return jsonify(response)
+    return send_file(
+        io.BytesIO(audio_data),
+        mimetype='audio/webm',
+        as_attachment=False,
+        download_name='response_audio.webm'
+    ), 200, response
 
 @app.route('/getResponseAudio', methods=['POST'])
 @cross_origin()
@@ -78,14 +91,17 @@ def get_response_audio():
     
     audio_data = methods.openai_methods.convert_text_to_speech(client, textmodel_response)
 
-    file_content_base64 = base64.b64encode(audio_data).decode('utf-8')
-
     response = {
-        'model_responde_text': textmodel_response,
-        'model_responde_audio': file_content_base64
+        'model_response_text': textmodel_response
     }
 
-    return jsonify(response)
+    return send_file(
+        io.BytesIO(audio_data),
+        mimetype='audio/webm',
+        as_attachment=False,
+        download_name='response_audio.webm'
+    ), 200, response
+
 
 @app.route('/deleteHistory', methods=['POST'])
 @cross_origin()
