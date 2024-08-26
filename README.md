@@ -61,6 +61,7 @@ Envie um arquivo de áudio na requisição.
 
 - `app.py`: Contém as rotas principais do aplicativo Flask.
 - `methods/openai_methods.py`: Contém métodos que interagem com a API da OpenAI. A documentação de cada uma dessas funções está na forma de comentários na própria função.
+- `data_analysis`: Contém notebooks com a manipulação e tratamento dos dados fornecidos pela Stone, com foco na segmentação de clientes por matriz RFM.
 
 ## Executando a Aplicação Localmente
 
