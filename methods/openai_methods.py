@@ -3,6 +3,18 @@ from io import BytesIO
 import requests
 
 def get_response_from_model(client, question, historical_messages):
+    """
+    Obtém uma resposta do modelo de linguagem "gpt-4o" baseado em uma pergunta e histórico de mensagens.
+
+    Args:
+        client: O cliente da API que será usado para se comunicar com o modelo de linguagem.
+        question (str): A pergunta que o usuário deseja fazer ao modelo.
+        historical_messages (list): Uma lista de dicionários contendo o histórico de mensagens. 
+                                    Cada dicionário deve ter as chaves "role" e "content".
+
+    Returns:
+        str: A resposta gerada pelo modelo de linguagem.
+    """
     historical_messages.append({"role": "user", "content": question})
     messages_list = [
                 {"role": m["role"], "content": m["content"]}
@@ -18,6 +30,16 @@ def get_response_from_model(client, question, historical_messages):
     return response_text
 
 def convert_speech_to_text(client, file_path):
+    """
+    Converte um arquivo de áudio em texto usando o modelo de transcrição de fala "whisper-1".
+
+    Args:
+        client: O cliente da API que será usado para se comunicar com o modelo de transcrição.
+        file_path (str): O caminho para o arquivo de áudio que será transcrito.
+
+    Returns:
+        str: O texto transcrito do arquivo de áudio.
+    """
     audio_file= open(file_path, "rb")
     transcription = client.audio.transcriptions.create(
                 model="whisper-1",
@@ -26,6 +48,16 @@ def convert_speech_to_text(client, file_path):
     return transcription.text
 
 def convert_text_to_speech(client, text):
+    """
+    Converte um texto em fala usando o modelo de síntese de voz "tts-1".
+
+    Args:
+        client: O cliente da API que será usado para se comunicar com o modelo de síntese de voz.
+        text (str): O texto que será convertido em fala.
+
+    Returns:
+        bytes: Os dados de áudio gerados a partir do texto.
+    """
     if text:
         speech_file_path = "speech.webm"
         response = client.audio.speech.create(
@@ -40,7 +72,16 @@ def convert_text_to_speech(client, text):
         return audio_data
 
 def generate_image(client, image_description):
-    print('generate_image')
+    """
+    Gera uma imagem com base em uma descrição usando o modelo de geração de imagens "dall-e-3".
+
+    Args:
+        client: O cliente da API que será usado para se comunicar com o modelo de geração de imagens.
+        image_description (str): A descrição da imagem que será gerada.
+
+    Returns:
+        str: A URL da imagem gerada.
+    """
     response = client.images.generate(
         model="dall-e-3",
         prompt=image_description,
@@ -61,8 +102,16 @@ def generate_image(client, image_description):
     return image_url
 
 def generate_blog_text(client, message):
-    print('generate_blog_text')
+    """
+    Gera o texto de um blog personalizado para o empreendedor e uma descrição de imagem para a capa do blog usando o modelo de linguagem "gpt-4o".
 
+    Args:
+        client: O cliente da API que será usado para se comunicar com o modelo de linguagem.
+        message (str): O tópico que será o tema do blog.
+
+    Returns:
+        tuple: Um par contendo o texto do blog em formato HTML e a descrição da imagem para a capa do blog.
+    """
     response = client.chat.completions.create(
         model="gpt-4o",
         messages=[
@@ -107,8 +156,6 @@ def generate_blog_text(client, message):
         ]
         )
     blog_text = response.choices[0].message.content
-    print("blog_text")
-    print(blog_text)
 
     response_image = client.chat.completions.create(
         model="gpt-4o",
@@ -131,7 +178,5 @@ def generate_blog_text(client, message):
         )
     
     image_description = response_image.choices[0].message.content
-    print("image_description")
-    print(image_description)
     
     return blog_text, image_description
